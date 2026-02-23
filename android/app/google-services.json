@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1086114862973",
+    "project_id": "cv-genius-ecf66",
+    "storage_bucket": "cv-genius-ecf66.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1086114862973:android:738315294e3e4747a0de14",
+        "android_client_info": {
+          "package_name": "com.example.cv_genius.cv_genius"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRHfPC9h3YHmRugTD7568FOTORoCAtJAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
