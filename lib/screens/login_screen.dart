@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isArabic ? "خطأ في الدخول" : "Login error"))
+          SnackBar(content: Text(isArabic ? "اووبس,خطأ في الدخول" : "ooops,Login error"))
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -67,19 +67,29 @@ class _LoginScreenState extends State<LoginScreen> {
                       colors: [Color(0xFFF8BBD0), Color(0xFFFDF7F9)],
                     ),
                     borderRadius: BorderRadius.only(bottomLeft: Radius.circular(100)),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.auto_awesome, size: 80, color: kMainPink),
-                      const SizedBox(height: 20),
-                      Text("CV Builder", style: TextStyle(fontSize: 28, color: kMainPink, fontWeight: FontWeight.w300)),
-                      const SizedBox(height: 15),
-                      Text(isArabic ? "جاهز لتبدأ رحلتك المهنية؟" : "Ready to start?", style: TextStyle(fontSize: 16, color: kMainPink)),
-                    ],
-                  ),
+                  ),child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+                Icon(Icons.auto_awesome, size: 75, color: kMainPink),
+                const SizedBox(height: 15),
+                Text(
+                    "CV Builder",
+                    style: TextStyle(fontSize: 28, color: kMainPink, fontWeight: FontWeight.w300)
                 ),
-
+                const SizedBox(height: 10),
+                Text(
+                    isArabic ? "جاهز لتبدأ رحلتك المهنية؟" : "Ready to start?",
+                    style: TextStyle(fontSize: 16, color: kMainPink, fontWeight: FontWeight.w500)
+                ),
+                const SizedBox(height: 5),
+                Text(
+                    isArabic ? "✨ خلينا نصمم سيرة ذاتية تليق بطموحك" : "✨ Let's design a professional CV",
+                    style: TextStyle(fontSize: 13, color: kMainPink.withOpacity(0.8))
+                ),
+              ],
+            )
+                  ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
                   child: Column(
@@ -117,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 30),
                       GestureDetector(
                         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterScreen())),
-                        child: Text(isArabic ? "إنشاء حساب جديد" : "Register Now", style: TextStyle(color: kMainPink, fontWeight: FontWeight.bold)),
+                        child: Text(isArabic ? "ليس لديك حساب ؟إنشاء حساب جديد" : "Don't have an account? Register Now", style: TextStyle(color: kMainPink, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -132,14 +142,36 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.4),
                 borderRadius: BorderRadius.circular(20),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.language, color: Color(0xFFC2185B)),
-    onPressed: () {
-    (langProvider as dynamic).changeLanguage(isArabic ? 'en' : 'ar');
-    },
+              ),child: IconButton(
+              icon: const Icon(Icons.language, color: Color(0xFFC2185B)),
+              onPressed: () {
+                // 1. الوصول للمزود
+                final dynamic langProv = Provider.of<LanguageProvider>(context, listen: false);
+
+                // 2. تحديث اللغة "يدوياً" بدون نداء الدالة المشكلة
+                // هذا الكود يغير القيمة مباشرة ويخبر التطبيق بالتحديث
+                setState(() {
+                  if (isArabic) {
+                    // إذا كان عندك متغير اسمه _currentLocale في البروفايدر
+                    try {
+                      langProv.changeLanguage('en');
+                    } catch (e) {
+                      // إذا فشل، بنجبره يغير الـ Locale إذا كان المتغير public
+                      // أو بننادي الدالة كـ dynamic مرة ثانية
+                      (langProv as dynamic).changeLanguage('en');
+                    }
+                  } else {
+                    try {
+                      langProv.changeLanguage('ar');
+                    } catch (e) {
+                      (langProv as dynamic).changeLanguage('ar');
+                    }
+                  }
+                });
+              },
+    ),
+
             ),
-          ),
           ),
         ],
       ),

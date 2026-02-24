@@ -42,6 +42,12 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
     return Scaffold(
       backgroundColor: kOffWhite,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFFAD1457)),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: Text(
           isArabic ? "بيانات النموذج الذكي" : "Smart Form Data",
           style: TextStyle(color: kDustyRose, fontWeight: FontWeight.bold),
@@ -52,7 +58,9 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.language),
-            onPressed: () => langProvider.setLanguage(isArabic ? 'en' : 'ar'),
+            onPressed: () {
+              langProvider.setLanguage(isArabic ? 'en' : 'ar');
+            },
           ),
         ],
       ),
@@ -68,15 +76,14 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
             _buildField(isArabic ? "المسمى الوظيفي" : "Job Title", jobTitleController, Icons.work_outline, isArabic),
             _buildField(isArabic ? "البريد الإلكتروني" : "Email Address", emailController, Icons.alternate_email, isArabic),
             _buildField(isArabic ? "رقم الهاتف" : "Phone Number", phoneController, Icons.phone_android, isArabic),
+            _buildField(isArabic ? "العنوان" : "Address", addressController, Icons.location_on_outlined, isArabic),
             _buildField(isArabic ? "رابط LinkedIn" : "LinkedIn Link", linkedinController, Icons.link, isArabic),
             _buildField(isArabic ? "تاريخ الميلاد" : "Date of Birth", birthdayController, Icons.cake_outlined, isArabic),
             _buildField(isArabic ? "اللغات" : "Languages", languagesController, Icons.translate, isArabic),
             _buildField(isArabic ? "المهارات (افصلي بفاصلة)" : "Skills (comma separated)", skillsController, Icons.star_outline, isArabic),
             _buildField(isArabic ? "الخبرات" : "Experience", experienceController, Icons.history, isArabic, maxLines: 3),
             _buildField(isArabic ? "نبذة تعريفية" : "Professional Summary", summaryController, Icons.description_outlined, isArabic, maxLines: 3),
-
             const SizedBox(height: 30),
-
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: kDustyRose,
@@ -134,13 +141,19 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
       if (mounted) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const FinalPreviewScreen(isSimple: false)),
+          MaterialPageRoute(
+            builder: (context) => const FinalPreviewScreen(isSimple: false),
+          ),
         );
       }
     } catch (e) {
+      print("Error in SmartForm: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isArabic ? "خطأ: ${e.toString()}" : "Error: ${e.toString()}")),
+          SnackBar(
+            content: Text(isArabic ? "خطأ في الحفظ: ${e.toString()}" : "Save Error: ${e.toString()}"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -152,8 +165,13 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
     return GestureDetector(
       onTap: () async {
         final picker = ImagePicker();
-        final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-        if (pickedFile != null) setState(() => _selectedImage = File(pickedFile.path));
+        final pickedFile = await picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 50,
+        );
+        if (pickedFile != null) {
+          setState(() => _selectedImage = File(pickedFile.path));
+        }
       },
       child: Column(
         children: [
@@ -165,7 +183,7 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            isArabic ? " أضف صورتك الحلوة" : "Add your sweet picture",
+            isArabic ? "أضف صورتك الحلوة" : "Add your sweet picture",
             style: TextStyle(color: kDustyRose, fontSize: 12),
           )
         ],

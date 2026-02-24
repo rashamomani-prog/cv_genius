@@ -15,6 +15,12 @@ class TemplateSelectionScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFFAF9F6),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFFAD1457)),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         backgroundColor: const Color(0xFFFAF9F6),
         elevation: 0,
         title: Text(

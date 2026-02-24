@@ -34,6 +34,12 @@ class _SimpleFormScreenState extends State<SimpleFormScreen> {
     return Scaffold(
       backgroundColor: kOffWhite,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFFAD1457)),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: Text(
           isArabic ? "النموذج البسيط" : "Simple Form",
           style: TextStyle(color: kDustyRose, fontWeight: FontWeight.w300),
