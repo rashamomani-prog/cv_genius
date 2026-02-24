@@ -1,10 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'package:provider/provider.dart';
 import '../providers/cv_provider.dart';
-import '../models/user_model.dart'; // تأكدي من عمل الـ Import للموديل
+import '../models/user_model.dart';
 import 'final_preview_screen.dart';
+import '../main.dart';
 
 class SmartFormScreen extends StatefulWidget {
   const SmartFormScreen({super.key});
@@ -14,99 +15,79 @@ class SmartFormScreen extends StatefulWidget {
 }
 
 class _SmartFormScreenState extends State<SmartFormScreen> {
-  final name = TextEditingController();
-  final phone = TextEditingController();
-  final address = TextEditingController();
-  final email = TextEditingController();
-  final linkedin = TextEditingController();
-  final birthDate = TextEditingController();
-  final jobTitle = TextEditingController();
+  final nameController = TextEditingController();
+  final jobTitleController = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
+  final addressController = TextEditingController();
+  final linkedinController = TextEditingController();
+  final birthdayController = TextEditingController();
+  final languagesController = TextEditingController();
+  final skillsController = TextEditingController();
+  final experienceController = TextEditingController();
+  final summaryController = TextEditingController();
 
-  List<String> selectedSkills = [];
-  File? _image;
+  File? _selectedImage;
+  bool _isProcessing = false;
 
-  Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) setState(() => _image = File(pickedFile.path));
-  }
+  final Color kOffWhite = const Color(0xFFFAF9F6);
+  final Color kSoftPink = const Color(0xFFF8BBD0);
+  final Color kDustyRose = const Color(0xFFAD1457);
 
   @override
   Widget build(BuildContext context) {
-    const kColor = Color(0xFF1A237E);
-    return Scaffold(
-      appBar: AppBar(title: const Text("النموذج السمارت (AI)"), backgroundColor: kColor, foregroundColor: Colors.white),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            GestureDetector(
-              onTap: _pickImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.white,
-                backgroundImage: _image != null ? FileImage(_image!) : null,
-                child: _image == null ? const Icon(Icons.add_a_photo, size: 40, color: kColor) : null,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildField("الاسم الكامل", name, Icons.person, kColor),
-            _buildField("المسمى الوظيفي (للحصول على مقترحات)", jobTitle, Icons.work, kColor, onChanged: (v) => setState(() {})),
-            _buildField("رقم الهاتف", phone, Icons.phone, kColor),
-            _buildField("مكان السكن", address, Icons.location_on, kColor),
-            _buildField("البريد الإلكتروني", email, Icons.email, kColor),
-            _buildField("حساب LinkedIn", linkedin, Icons.link, kColor),
-            _buildField("تاريخ الميلاد", birthDate, Icons.cake, kColor),
+    final langProvider = Provider.of<LanguageProvider>(context);
+    bool isArabic = langProvider.locale.languageCode == 'ar';
 
-            const Divider(height: 40),
-            const Text("مقترحات ذكية لمهاراتك:", style: TextStyle(fontWeight: FontWeight.bold, color: kColor)),
-            const SizedBox(height: 10),
-            _buildAISuggestions(jobTitle.text),
+    return Scaffold(
+      backgroundColor: kOffWhite,
+      appBar: AppBar(
+        title: Text(
+          isArabic ? "بيانات النموذج الذكي" : "Smart Form Data",
+          style: TextStyle(color: kDustyRose, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: kOffWhite,
+        elevation: 0,
+        iconTheme: IconThemeData(color: kDustyRose),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.language),
+            onPressed: () => langProvider.setLanguage(isArabic ? 'en' : 'ar'),
+          ),
+        ],
+      ),
+      body: _isProcessing
+          ? Center(child: CircularProgressIndicator(color: kDustyRose))
+          : SingleChildScrollView(
+        padding: const EdgeInsets.all(25),
+        child: Column(
+          children: <Widget>[
+            _buildImagePicker(isArabic),
+            const SizedBox(height: 30),
+            _buildField(isArabic ? "الاسم الكامل" : "Full Name", nameController, Icons.person_outline, isArabic),
+            _buildField(isArabic ? "المسمى الوظيفي" : "Job Title", jobTitleController, Icons.work_outline, isArabic),
+            _buildField(isArabic ? "البريد الإلكتروني" : "Email Address", emailController, Icons.alternate_email, isArabic),
+            _buildField(isArabic ? "رقم الهاتف" : "Phone Number", phoneController, Icons.phone_android, isArabic),
+            _buildField(isArabic ? "رابط LinkedIn" : "LinkedIn Link", linkedinController, Icons.link, isArabic),
+            _buildField(isArabic ? "تاريخ الميلاد" : "Date of Birth", birthdayController, Icons.cake_outlined, isArabic),
+            _buildField(isArabic ? "اللغات" : "Languages", languagesController, Icons.translate, isArabic),
+            _buildField(isArabic ? "المهارات (افصلي بفاصلة)" : "Skills (comma separated)", skillsController, Icons.star_outline, isArabic),
+            _buildField(isArabic ? "الخبرات" : "Experience", experienceController, Icons.history, isArabic, maxLines: 3),
+            _buildField(isArabic ? "نبذة تعريفية" : "Professional Summary", summaryController, Icons.description_outlined, isArabic, maxLines: 3),
 
             const SizedBox(height: 30),
 
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: kColor,
-                minimumSize: const Size(double.infinity, 60),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                backgroundColor: kDustyRose,
+                minimumSize: const Size(double.infinity, 55),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               ),
-              onPressed: () async {
-                final provider = Provider.of<CVProvider>(context, listen: false);
-                String imageUrl = "";
-
-                try {
-                  // 1. رفع الصورة لـ Storage إذا وجدت
-                  if (_image != null) {
-                    imageUrl = await provider.uploadProfileImage(_image!);
-                  }
-
-                  // 2. إنشاء كائن UserModel (هنا حل المشكلة)
-                  final smartUser = UserModel(
-                    fullName: name.text,
-                    email: email.text,
-                    phone: phone.text,
-                    address: address.text,
-                    jobTitle: jobTitle.text,
-                    linkedin: linkedin.text,
-                    birthDate: birthDate.text,
-                    profileImage: imageUrl,
-                    smartSkills: selectedSkills, // المهارات اللي اخترناها من الـ AI
-                    isSmart: true,
-                  );
-
-                  // 3. الحفظ في Firestore بباراميتر واحد فقط
-                  await provider.saveCVData(smartUser);
-
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("تم حفظ النموذج السمارت بنجاح!")));
-
-                  // 4. الانتقال للمعاينة
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const FinalPreviewScreen()));
-
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("خطأ: $e")));
-                }
-              },
-              child: const Text("حفظ ومعاينة السيرة الذاتية", style: TextStyle(color: Colors.white, fontSize: 18)),
+              onPressed: () => _saveAndNavigate(isArabic),
+              child: Text(
+                isArabic ? "حفظ ومعاينة الـ CV ✨" : "Save & Preview CV ✨",
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
             ),
           ],
         ),
@@ -114,45 +95,105 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
     );
   }
 
-  Widget _buildAISuggestions(String title) {
-    Map<String, List<String>> aiData = {
-      "مطور": ["Flutter", "Dart", "Firebase", "Git", "Clean Architecture"],
-      "مصمم": ["UI/UX", "Adobe XD", "Figma", "Photoshop", "Typography"],
-      "محاسب": ["Excel", "Financial Analysis", "QuickBooks", "Taxation"],
-    };
+  Future<void> _saveAndNavigate(bool isArabic) async {
+    if (nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isArabic ? "الرجاء كتابة الاسم" : "Please enter your name")),
+      );
+      return;
+    }
 
-    List<String> suggestions = [];
-    aiData.forEach((key, value) {
-      if (title.contains(key)) suggestions = value;
-    });
+    setState(() => _isProcessing = true);
 
-    if (suggestions.isEmpty) return const Text("ابدأ بكتابة مسمى وظيفي لرؤية المقترحات", style: TextStyle(fontSize: 12, color: Colors.grey));
+    try {
+      final provider = Provider.of<CVProvider>(context, listen: false);
+      String imageUrl = "";
 
-    return Wrap(
-      spacing: 8,
-      children: suggestions.map((skill) {
-        bool isAdded = selectedSkills.contains(skill);
-        return ActionChip(
-          label: Text(skill),
-          backgroundColor: isAdded ? Colors.green[100] : Colors.white,
-          onPressed: () => setState(() => isAdded ? selectedSkills.remove(skill) : selectedSkills.add(skill)),
+      if (_selectedImage != null) {
+        imageUrl = await provider.uploadProfileImage(_selectedImage!);
+      }
+
+      final newUser = UserModel(
+        fullName: nameController.text.trim(),
+        email: emailController.text.trim(),
+        phone: phoneController.text.trim(),
+        address: addressController.text.trim(),
+        jobTitle: jobTitleController.text.trim(),
+        linkedin: linkedinController.text.trim(),
+        birthDate: birthdayController.text.trim(),
+        languages: languagesController.text.trim(),
+        skills: skillsController.text.trim(),
+        experience: experienceController.text.trim(),
+        summary: summaryController.text.trim(),
+        profileImage: imageUrl,
+        isSmart: true,
+      );
+
+      await provider.saveCVData(newUser);
+
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const FinalPreviewScreen(isSimple: false)),
         );
-      }).toList(),
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(isArabic ? "خطأ: ${e.toString()}" : "Error: ${e.toString()}")),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Widget _buildImagePicker(bool isArabic) {
+    return GestureDetector(
+      onTap: () async {
+        final picker = ImagePicker();
+        final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+        if (pickedFile != null) setState(() => _selectedImage = File(pickedFile.path));
+      },
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 60,
+            backgroundColor: kSoftPink.withOpacity(0.3),
+            backgroundImage: _selectedImage != null ? FileImage(_selectedImage!) : null,
+            child: _selectedImage == null ? Icon(Icons.add_a_photo, size: 40, color: kDustyRose) : null,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isArabic ? " أضف صورتك الحلوة" : "Add your sweet picture",
+            style: TextStyle(color: kDustyRose, fontSize: 12),
+          )
+        ],
+      ),
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, IconData icon, Color color, {Function(String)? onChanged}) {
+  Widget _buildField(String label, TextEditingController controller, IconData icon, bool isArabic, {int maxLines = 1}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 20),
       child: TextField(
         controller: controller,
-        onChanged: onChanged,
+        maxLines: maxLines,
+        textAlign: isArabic ? TextAlign.right : TextAlign.left,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: color),
+          prefixIcon: Icon(icon, color: kDustyRose),
           filled: true,
           fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide(color: kSoftPink.withOpacity(0.5)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide(color: kDustyRose),
+          ),
         ),
       ),
     );

@@ -4,16 +4,17 @@ class UserModel {
   String email;
   String phone;
   String address;
-  String? jobTitle; // للسمارت
-  String? education; // للبسيط
-  String? skills; // للبسيط (String) أو للسمارت (List) حسب ما بتخزنيه
-  List<dynamic>? smartSkills; // للمقترحات الـ AI في السمارت
+  String? jobTitle;     // للسمارت
+  String? education;    // للبسيط والسمارت
+  String? skills;       // المهارات (نص)
+  List<dynamic>? smartSkills; // مهارات AI
   String? experience;
   String? summary;
-  String? linkedin; // للسمارت
-  String? birthDate; // للسمارت
-  String? profileImage; // للسمارت (رابط الصورة)
-  bool isSmart; // عشان نميز البيانات جاية من أي نموذج
+  String? linkedin;     // رابط لينكد إن
+  String? birthDate;    // تاريخ الميلاد
+  String? profileImage; // رابط الصورة من Firebase Storage
+  String? languages;    // اللغات (الإضافة الجديدة)
+  bool isSmart;
 
   UserModel({
     this.id,
@@ -30,10 +31,11 @@ class UserModel {
     this.linkedin,
     this.birthDate,
     this.profileImage,
+    this.languages,    // أضفناها هنا
     required this.isSmart,
   });
 
-  // وظيفة لتحويل البيانات من Map (Firestore) إلى Object (App)
+  // من Firestore إلى App
   factory UserModel.fromMap(Map<String, dynamic> data, String id) {
     return UserModel(
       id: id,
@@ -50,11 +52,12 @@ class UserModel {
       linkedin: data['linkedin'],
       birthDate: data['birthDate'],
       profileImage: data['profileImage'],
+      languages: data['languages'], // قراءة اللغات
       isSmart: data['isSmart'] ?? false,
     );
   }
 
-  // وظيفة لتحويل الـ Object إلى Map عشان نخزنه في Firestore
+  // من App إلى Firestore
   Map<String, dynamic> toMap() {
     return {
       'fullName': fullName,
@@ -70,6 +73,7 @@ class UserModel {
       'linkedin': linkedin,
       'birthDate': birthDate,
       'profileImage': profileImage,
+      'languages': languages, // تخزين اللغات
       'isSmart': isSmart,
     };
   }

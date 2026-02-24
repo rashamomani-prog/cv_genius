@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/cv_provider.dart';
 import '../models/user_model.dart';
 import 'final_preview_screen.dart';
+import '../main.dart';
 
 class SimpleFormScreen extends StatefulWidget {
   const SimpleFormScreen({super.key});
@@ -12,7 +13,6 @@ class SimpleFormScreen extends StatefulWidget {
 }
 
 class _SimpleFormScreenState extends State<SimpleFormScreen> {
-  // الكنترولرز للحقول
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
@@ -22,41 +22,72 @@ class _SimpleFormScreenState extends State<SimpleFormScreen> {
   final experienceController = TextEditingController();
   final summaryController = TextEditingController();
 
+  final Color kOffWhite = const Color(0xFFFAF9F6);
+  final Color kSoftPink = const Color(0xFFF8BBD0);
+  final Color kDustyRose = const Color(0xFFAD1457);
+
   @override
   Widget build(BuildContext context) {
-    const kColor = Color(0xFF1A237E); // الكحلي
+    final langProvider = Provider.of<LanguageProvider>(context);
+    bool isArabic = langProvider.locale.languageCode == 'ar';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5DC), // الخلفية البيج
+      backgroundColor: kOffWhite,
       appBar: AppBar(
-        title: const Text("النموذج البسيط"),
-        backgroundColor: kColor,
-        foregroundColor: Colors.white,
+        title: Text(
+          isArabic ? "النموذج البسيط" : "Simple Form",
+          style: TextStyle(color: kDustyRose, fontWeight: FontWeight.w300),
+        ),
+        backgroundColor: kOffWhite,
+        elevation: 0,
+        iconTheme: IconThemeData(color: kDustyRose),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.language),
+            onPressed: () {
+              langProvider.setLanguage(isArabic ? 'en' : 'ar');
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildField("الاسم الكامل", nameController, Icons.person, kColor),
-            _buildField("البريد الإلكتروني", emailController, Icons.email, kColor),
-            _buildField("رقم الهاتف", phoneController, Icons.phone, kColor),
-            _buildField("مكان السكن", addressController, Icons.location_city, kColor),
-            _buildField("التعليم", educationController, Icons.school, kColor),
-            _buildField("المهارات", skillsController, Icons.star, kColor),
-            _buildField("الخبرات", experienceController, Icons.work, kColor, maxLines: 3),
-            _buildField("نبذة بسيطة", summaryController, Icons.info, kColor, maxLines: 3),
+            Text(
+              isArabic ? "المعلومات الشخصية ✨" : "Personal Information ✨",
+              style: TextStyle(fontSize: 18, color: kDustyRose, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
 
-            const SizedBox(height: 30),
+            _buildField(isArabic ? "الاسم الكامل" : "Full Name", nameController, Icons.person_outline, isArabic),
+            _buildField(isArabic ? "البريد الإلكتروني" : "Email Address", emailController, Icons.alternate_email, isArabic),
+            _buildField(isArabic ? "رقم الهاتف" : "Phone Number", phoneController, Icons.phone_android_outlined, isArabic),
+            _buildField(isArabic ? "مكان السكن" : "Address", addressController, Icons.location_on_outlined, isArabic),
 
-            // الكبسة بعد التعديل والتنظيف
+            const SizedBox(height: 20),
+            Text(
+              isArabic ? "المؤهلات والخبرات 📚" : "Qualifications & Experience 📚",
+              style: TextStyle(fontSize: 18, color: kDustyRose, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+
+            _buildField(isArabic ? "التعليم" : "Education", educationController, Icons.school_outlined, isArabic),
+            _buildField(isArabic ? "المهارات" : "Skills", skillsController, Icons.star_border, isArabic),
+            _buildField(isArabic ? "الخبرات" : "Experience", experienceController, Icons.work_outline, isArabic, maxLines: 3),
+            _buildField(isArabic ? "نبذة بسيطة" : "Summary", summaryController, Icons.info_outline, isArabic, maxLines: 3),
+
+            const SizedBox(height: 40),
+
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: kColor,
+                backgroundColor: kDustyRose,
                 minimumSize: const Size(double.infinity, 55),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                elevation: 0,
               ),
               onPressed: () async {
-                // 1. إنشاء كائن البيانات
                 final newUser = UserModel(
                   fullName: nameController.text,
                   email: emailController.text,
@@ -70,57 +101,64 @@ class _SimpleFormScreenState extends State<SimpleFormScreen> {
                 );
 
                 try {
-                  // 2. حفظ البيانات في السيرفر عبر الـ Provider
                   await Provider.of<CVProvider>(context, listen: false).saveCVData(newUser);
 
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("تم حفظ البيانات بنجاح!")),
+                      SnackBar(
+                        content: Text(isArabic ? "تم حفظ البيانات بنجاح!" : "Data saved successfully!"),
+                        backgroundColor: kDustyRose,
+                      ),
                     );
 
-                    // 3. الانتقال لصفحة المعاينة
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const FinalPreviewScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const FinalPreviewScreen(isSimple: true),
+                      ),
                     );
                   }
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("حدث خطأ أثناء الحفظ: $e")),
+                      SnackBar(
+                        content: Text(isArabic ? "حدث خطأ أثناء الحفظ" : "Error during save"),
+                        backgroundColor: Colors.red,
+                      ),
                     );
                   }
                 }
               },
-              child: const Text(
-                "حفظ ومعاينة السيرة الذاتية",
-                style: TextStyle(color: Colors.white, fontSize: 18),
+              child: Text(
+                isArabic ? "حفظ ومعاينة السيرة الذاتية ✨" : "Save & Preview CV ✨",
+                style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, IconData icon, Color color, {int maxLines = 1}) {
+  Widget _buildField(String label, TextEditingController controller, IconData icon, bool isArabic, {int maxLines = 1}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.only(bottom: 20),
       child: TextField(
         controller: controller,
         maxLines: maxLines,
+        textAlign: isArabic ? TextAlign.right : TextAlign.left,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: color),
-          prefixIcon: Icon(icon, color: color),
+          labelStyle: TextStyle(color: kDustyRose.withOpacity(0.5)),
+          prefixIcon: Icon(icon, color: kSoftPink),
           filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+          fillColor: Colors.white.withOpacity(0.5),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: kSoftPink.withOpacity(0.5)),
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: color, width: 2),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: kDustyRose, width: 2),
           ),
         ),
       ),

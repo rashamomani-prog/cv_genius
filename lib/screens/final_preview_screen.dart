@@ -1,157 +1,185 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../providers/cv_provider.dart';
+import '../main.dart';
+import '../services/pdf_service.dart';
 
 class FinalPreviewScreen extends StatelessWidget {
-  const FinalPreviewScreen({super.key});
+  final bool isSimple;
+
+  const FinalPreviewScreen({super.key, required this.isSimple});
+
+  final Color kOffWhite = const Color(0xFFFAF9F6);
+  final Color kSoftPink = const Color(0xFFF8BBD0);
+  final Color kDustyRose = const Color(0xFFAD1457);
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<CVProvider>(context, listen: false);
-    const kNavy = Color(0xFF1A237E);
-    const kBeige = Color(0xFFF5F5DC);
+    final langProvider = Provider.of<LanguageProvider>(context);
+    bool isArabic = langProvider.locale.languageCode == 'ar';
 
-    return Scaffold(
-      backgroundColor: kBeige,
-      appBar: AppBar(
-        title: const Text("معاينة السيرة الذاتية"),
-        backgroundColor: kNavy,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              // كبسة المشاركة (ممكن برمجتها لاحقاً)
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("جاري تحضير ملف الـ PDF...")));
-            },
-          )
-        ],
-      ),
-      // استخدمنا StreamBuilder عشان الكبسات تكون شغالة وتجيب البيانات فوراً
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection(provider.isSimple ? 'simple_cvs' : 'smart_cvs')
-            .doc(provider.currentUser?.uid)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: kNavy));
-          }
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text("لا توجد بيانات محفوظة بعد."));
-          }
+    return Consumer<CVProvider>(
+      builder: (context, cvProvider, child) {
+        final cvData = cvProvider.userCV;
 
-          var data = snapshot.data!.data() as Map<String, dynamic>;
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                // إذا كان سمارت، بنعرض الصورة الشخصية
-                if (data['profileImage'] != null && data['profileImage'] != "")
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundImage: NetworkImage(data['profileImage']),
-                    backgroundColor: Colors.white,
-                  ),
-                const SizedBox(height: 20),
-
-                // الهيدر (الاسم والوظيفة)
-                Text(
-                  data['fullName'] ?? "الاسم غير موجود",
-                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: kNavy),
-                ),
-                if (data['jobTitle'] != null)
-                  Text(
-                    data['jobTitle'],
-                    style: const TextStyle(fontSize: 18, color: Colors.blueGrey),
-                  ),
-
-                const Divider(height: 40, thickness: 2, color: kNavy),
-
-                // عرض الأقسام بشكل فخم
-                _buildInfoSection("المعلومات الشخصية", [
-                  _infoRow(Icons.email, data['email']),
-                  _infoRow(Icons.phone, data['phone']),
-                  _infoRow(Icons.location_on, data['address']),
-                  if (data['linkedin'] != null) _infoRow(Icons.link, data['linkedin']),
-                ]),
-
-                if (data['summary'] != null)
-                  _buildInfoSection("النبذة التعريفية", [
-                    Text(data['summary'], style: const TextStyle(height: 1.5)),
-                  ]),
-
-                if (data['skills'] != null)
-                  _buildInfoSection("المهارات", [
-                    // عرض المهارات اللي اخترناها من الـ AI على شكل Chips
-                    Wrap(
-                      spacing: 8,
-                      children: (data['skills'] as List).map((s) => Chip(
-                        label: Text(s.toString()),
-                        backgroundColor: kNavy.withOpacity(0.1),
-                      )).toList(),
-                    ),
-                  ]),
-
-                _buildInfoSection("المسار الأكاديمي والمهني", [
-                  Text(data['education'] ?? data['experience'] ?? "لا توجد تفاصيل"),
-                ]),
-
-                const SizedBox(height: 30),
-
-                // كبسة "تعديل" عشان المستخدم يرجع يعدل بياناته
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kNavy,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.edit, color: Colors.white),
-                  label: const Text("تعديل البيانات", style: TextStyle(color: Colors.white)),
-                ),
-              ],
+        if (cvData == null) {
+          return Scaffold(
+            backgroundColor: kOffWhite,
+            body: Center(
+              child: Text(isArabic ? "لا توجد بيانات" : "No data found"),
             ),
           );
-        },
-      ),
+        }
+
+        return Scaffold(
+          backgroundColor: kOffWhite,
+          appBar: AppBar(
+            title: Text(
+              isSimple
+                  ? (isArabic ? "النموذج الكلاسيكي" : "Classic Template")
+                  : (isArabic ? "النموذج الذكي الحديث" : "Modern Smart Template"),
+              style: TextStyle(color: kDustyRose, fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: kOffWhite,
+            elevation: 0,
+            iconTheme: IconThemeData(color: kDustyRose),
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            backgroundColor: kDustyRose,
+            onPressed: () async {
+              if (cvProvider.userCV != null) {
+                await PdfService.generateAndShareResume(cvProvider.userCV!, isArabic);
+              }
+            },
+            label: Text(isArabic ? "تحميل PDF" : "Download PDF"),
+            icon: const Icon(Icons.picture_as_pdf),
+          ),
+
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: isSimple
+                ? _buildSimpleLayout(cvData, isArabic)
+                : _buildSmartModernLayout(cvData, isArabic),
+          ),
+        );
+      },
     );
   }
-
-  Widget _buildInfoSection(String title, List<Widget> children) {
+  Widget _buildSimpleLayout(cvData, bool isArabic) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-      ),
+      decoration: _cardDecoration(),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A237E))),
-          const SizedBox(height: 10),
-          ...children,
+          _buildBasicHeader(cvData),
+          Padding(
+            padding: const EdgeInsets.all(25),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionTitle(isArabic ? "المعلومات الشخصية" : "Personal Information", Icons.person_outline),
+                _buildInfoRow(Icons.email_outlined, cvData.email),
+                _buildInfoRow(Icons.phone_android_outlined, cvData.phone),
+                const Divider(height: 30),
+                _buildSectionTitle(isArabic ? "النبذة" : "Summary", Icons.work_outline),
+                Text(cvData.summary ?? "", textAlign: isArabic ? TextAlign.right : TextAlign.left),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _infoRow(IconData icon, String? text) {
-    if (text == null || text.isEmpty) return const SizedBox.shrink();
+  Widget _buildSmartModernLayout(cvData, bool isArabic) {
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(30),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [kDustyRose, const Color(0xFF6A0D34)]),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 55,
+                backgroundColor: Colors.white,
+                backgroundImage: (cvData.profileImage != null && cvData.profileImage!.isNotEmpty)
+                    ? NetworkImage(cvData.profileImage!)
+                    : null,
+                child: (cvData.profileImage == null || cvData.profileImage!.isEmpty)
+                    ? Icon(Icons.person, size: 50, color: kDustyRose)
+                    : null,
+              ),
+              const SizedBox(height: 15),
+              Text(cvData.fullName, style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
+              Text(cvData.jobTitle ?? "", style: const TextStyle(color: Colors.white70)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        _buildCard(
+          title: isArabic ? "المهارات" : "Skills",
+          icon: Icons.bolt,
+          child: Column(
+            children: (cvData.skills ?? "").split(',').map((s) => _buildSkillBar(s.trim())).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // دوال الـ Decoration والـ Helpers
+  BoxDecoration _cardDecoration() {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(25),
+      boxShadow: [BoxShadow(color: kSoftPink.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))],
+    );
+  }
+
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: kDustyRose, size: 22),
+        const SizedBox(width: 10),
+        Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: kDustyRose)),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 5),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.blueGrey),
-          const SizedBox(width: 10),
-          Text(text),
-        ],
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(children: [Icon(icon, size: 18, color: kSoftPink), const SizedBox(width: 12), Text(text)]),
+    );
+  }
+
+  Widget _buildCard({required String title, required IconData icon, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: _cardDecoration(),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildSectionTitle(title, icon), const SizedBox(height: 15), child]),
+    );
+  }
+
+  Widget _buildSkillBar(String skill) {
+    if (skill.isEmpty) return const SizedBox();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: LinearProgressIndicator(value: 0.8, backgroundColor: kSoftPink.withOpacity(0.2), color: kDustyRose, minHeight: 6),
+    );
+  }
+
+  Widget _buildBasicHeader(cvData) {
+    return Container(
+      padding: const EdgeInsets.all(25),
+      width: double.infinity,
+      decoration: BoxDecoration(color: kSoftPink.withOpacity(0.2), borderRadius: const BorderRadius.vertical(top: Radius.circular(25))),
+      child: Text(cvData.fullName, textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: kDustyRose)),
     );
   }
 }
