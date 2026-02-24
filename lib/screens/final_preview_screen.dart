@@ -35,9 +35,9 @@ class FinalPreviewScreen extends StatelessWidget {
           backgroundColor: kOffWhite,
           appBar: AppBar(
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: Color(0xFFAD1457)), // نفس لون الـ Dusty Rose
+              icon: const Icon(Icons.arrow_back_ios, color: Color(0xFFAD1457)),
               onPressed: () {
-                Navigator.pop(context); // هاي اللي بترجعك للصفحة اللي قبلها
+                Navigator.pop(context);
               },
             ),
             title: Text(
@@ -53,7 +53,7 @@ class FinalPreviewScreen extends StatelessWidget {
           floatingActionButton: FloatingActionButton.extended(
             backgroundColor: kDustyRose,
             onPressed: () async {
-              print("Share button clicked!"); // عشان نتأكد إن الكبسة بتنضغط أصلاً
+              print("Share button clicked!");
               try {
                 if (cvProvider.userCV != null) {
                   await PdfService.generateAndShareResume(cvProvider.userCV!, isArabic);
@@ -61,7 +61,7 @@ class FinalPreviewScreen extends StatelessWidget {
                   print("CV Data is NULL!");
                 }
               } catch (e) {
-                print("PDF ERROR: $e"); // هون رح يطبع لك ليش مش راضي يفتح الـ Share
+                print("PDF ERROR: $e");
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text("Error: $e")),
                 );
@@ -97,6 +97,12 @@ class FinalPreviewScreen extends StatelessWidget {
                 _buildInfoRow(Icons.email_outlined, cvData.email),
                 _buildInfoRow(Icons.phone_android_outlined, cvData.phone),
                 const Divider(height: 30),
+
+                // إضافة التعليم في النموذج الكلاسيكي
+                _buildSectionTitle(isArabic ? "التعليم" : "Education", Icons.school_outlined),
+                Text(cvData.education ?? "", textAlign: isArabic ? TextAlign.right : TextAlign.left),
+                const Divider(height: 30),
+
                 _buildSectionTitle(isArabic ? "النبذة" : "Summary", Icons.work_outline),
                 Text(cvData.summary ?? "", textAlign: isArabic ? TextAlign.right : TextAlign.left),
               ],
@@ -107,7 +113,6 @@ class FinalPreviewScreen extends StatelessWidget {
     );
   }
 
-  // --- التعديل هنا في دالة النموذج الذكي ---
   Widget _buildSmartModernLayout(cvData, bool isArabic) {
     return Column(
       children: [
@@ -118,10 +123,9 @@ class FinalPreviewScreen extends StatelessWidget {
             gradient: LinearGradient(colors: [kDustyRose, const Color(0xFF6A0D34)]),
             borderRadius: BorderRadius.circular(30),
           ),
-          child: Row( // تغيير إلى Row ليصبح الاسم بجانب الصورة
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 1. دائرة الصورة
               CircleAvatar(
                 radius: 50,
                 backgroundColor: Colors.white,
@@ -133,7 +137,6 @@ class FinalPreviewScreen extends StatelessWidget {
                     : null,
               ),
               const SizedBox(width: 20),
-              // 2. النصوص (الاسم والمسمى) داخل Expanded لمنع العجقة
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,6 +166,18 @@ class FinalPreviewScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
+        if (cvData.education != null && cvData.education!.isNotEmpty) ...[
+          _buildCard(
+            title: isArabic ? "التعليم" : "Education",
+            icon: Icons.school,
+            child: Text(
+              cvData.education!,
+              style: const TextStyle(fontSize: 14, height: 1.4),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+
         _buildCard(
           title: isArabic ? "المهارات" : "Skills",
           icon: Icons.bolt,
@@ -177,7 +192,6 @@ class FinalPreviewScreen extends StatelessWidget {
     );
   }
 
-  // دوال الـ Decoration والـ Helpers
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
       color: Colors.white,

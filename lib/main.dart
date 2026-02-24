@@ -5,7 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'firebase_options.dart';
 import 'providers/cv_provider.dart';
 import 'screens/login_screen.dart';
-
+import 'screens/splash_screen.dart';
 class LanguageProvider extends ChangeNotifier {
   Locale _locale = const Locale('ar');
 
