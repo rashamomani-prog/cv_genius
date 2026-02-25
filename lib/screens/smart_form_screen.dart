@@ -20,6 +20,7 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final addressController = TextEditingController();
+  final educationController= TextEditingController();
   final linkedinController = TextEditingController();
   final birthdayController = TextEditingController();
   final languagesController = TextEditingController();
@@ -29,8 +30,6 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
 
   File? _selectedImage;
   bool _isProcessing = false;
-
-  // قوائم الخيارات الذكية (Quiz Style)
   final List<String> _suggestedSkills = [
     "Communication", "Leadership", "Teamwork",
     "Problem Solving", "Time Management", "Creativity", "Technical Skills"
@@ -77,7 +76,6 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
         padding: const EdgeInsets.all(25),
         child: Column(
           children: <Widget>[
-            _buildImagePicker(isArabic),
             const SizedBox(height: 30),
             _buildField(isArabic ? "الاسم الكامل" : "Full Name", nameController, Icons.person_outline, isArabic),
             _buildField(isArabic ? "المسمى الوظيفي" : "Job Title", jobTitleController, Icons.work_outline, isArabic),
@@ -106,8 +104,8 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
             _buildField(isArabic ? "المهارات المختارة" : "Selected Skills", skillsController, Icons.star_outline, isArabic),
 
             const Divider(height: 40),
-
             _buildField(isArabic ? "العنوان" : "Address", addressController, Icons.location_on_outlined, isArabic),
+            _buildField(isArabic ? "التعليم" : "Education", educationController, Icons.school_outlined, isArabic),
             _buildField(isArabic ? "رابط LinkedIn" : "LinkedIn Link", linkedinController, Icons.link, isArabic),
             _buildField(isArabic ? "تاريخ الميلاد" : "Date of Birth", birthdayController, Icons.cake_outlined, isArabic),
             _buildField(isArabic ? "الخبرات" : "Experience", experienceController, Icons.history, isArabic, maxLines: 3),
@@ -190,6 +188,7 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
         phone: phoneController.text.trim(),
         address: addressController.text.trim(),
         jobTitle: jobTitleController.text.trim(),
+        education: educationController.text,
         linkedin: linkedinController.text.trim(),
         birthDate: birthdayController.text.trim(),
         languages: languagesController.text.trim(),
@@ -211,27 +210,6 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
     }
   }
 
-  Widget _buildImagePicker(bool isArabic) {
-    return GestureDetector(
-      onTap: () async {
-        final picker = ImagePicker();
-        final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
-        if (pickedFile != null) setState(() => _selectedImage = File(pickedFile.path));
-      },
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 60,
-            backgroundColor: kSoftPink.withOpacity(0.3),
-            backgroundImage: _selectedImage != null ? FileImage(_selectedImage!) : null,
-            child: _selectedImage == null ? Icon(Icons.add_a_photo, size: 40, color: kDustyRose) : null,
-          ),
-          const SizedBox(height: 8),
-          Text(isArabic ? "أضف صورتك الحلوة" : "Add your picture", style: TextStyle(color: kDustyRose, fontSize: 12)),
-        ],
-      ),
-    );
-  }
 
   Widget _buildField(String label, TextEditingController controller, IconData icon, bool isArabic, {int maxLines = 1}) {
     return Padding(

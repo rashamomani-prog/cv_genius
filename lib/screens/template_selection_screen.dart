@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'smart_form_screen.dart';
 import 'simple_form_screen.dart';
 import '../main.dart';
+import '../services/simple_pdf_service.dart';
 
 class TemplateSelectionScreen extends StatelessWidget {
   const TemplateSelectionScreen({super.key});
@@ -17,9 +18,7 @@ class TemplateSelectionScreen extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Color(0xFFAD1457)),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         backgroundColor: const Color(0xFFFAF9F6),
         elevation: 0,
@@ -35,52 +34,59 @@ class TemplateSelectionScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
-            Text(
-              isArabic
-                  ? "اختر التنسيق الذي يناسب شخصيتك المهنية"
-                  : "Select the layout that fits your professional persona",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-            ),
-            const SizedBox(height: 30),
-            _buildSelectionCard(
-              context,
-              isArabic: isArabic,
-              title: isArabic ? "النموذج الكلاسيكي" : "Classic Template",
-              subtitle: isArabic ? "بسيط، رسمي ومباشر" : "Simple, formal, and direct",
-              icon: Icons.article_outlined,
-              onTap: () {
-                Navigator.push(
+      body: StreamBuilder(
+        stream: Stream.periodic(const Duration(milliseconds: 500)).take(1),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Color(0xFFAD1457)));
+          }
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                Text(
+                  isArabic
+                      ? "اختر التنسيق الذي يناسب شخصيتك المهنية"
+                      : "Select the layout that fits your professional persona",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                ),
+                const SizedBox(height: 30),
+                _buildSelectionCard(
                   context,
-                  MaterialPageRoute(builder: (context) => const SimpleFormScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            _buildSelectionCard(
-              context,
-              isArabic: isArabic,
-              title: isArabic ? "النموذج الذكي الحديث" : "Modern Smart Template",
-              subtitle: isArabic ? "مع صورة شخصية وتنسيق عصري" : "With profile picture and modern layout",
-              icon: Icons.auto_awesome_outlined,
-              onTap: () {
-                Navigator.push(
+                  isArabic: isArabic,
+                  title: isArabic ? "النموذج الكلاسيكي" : "Classic Template",
+                  subtitle: isArabic ? "بسيط، رسمي ومباشر" : "Simple, formal, and direct",
+                  icon: Icons.article_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SimpleFormScreen()),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                _buildSelectionCard(
                   context,
-                  MaterialPageRoute(builder: (context) => const SmartFormScreen()),
-                );
-              },
+                  isArabic: isArabic,
+                  title: isArabic ? "النموذج الذكي الحديث" : "Modern Smart Template",
+                  subtitle: isArabic ? "مع صورة شخصية وتنسيق عصري" : "With profile picture and modern layout",
+                  icon: Icons.auto_awesome_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SmartFormScreen()),
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
-
   Widget _buildSelectionCard(BuildContext context, {
     required String title,
     required String subtitle,
@@ -128,7 +134,7 @@ class TemplateSelectionScreen extends StatelessWidget {
               ),
             ),
             Icon(
-                isArabic ? Icons.arrow_forward_ios : Icons.arrow_back_ios,
+                isArabic ? Icons.arrow_back_ios : Icons.arrow_forward_ios,
                 size: 16,
                 color: const Color(0xFFAD1457).withOpacity(0.5)
             ),

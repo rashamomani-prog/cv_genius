@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/cv_provider.dart';
 import '../main.dart';
 import '../services/pdf_service.dart';
+import '../services/simple_pdf_service.dart';
 
 class FinalPreviewScreen extends StatelessWidget {
   final bool isSimple;
@@ -53,23 +54,26 @@ class FinalPreviewScreen extends StatelessWidget {
           floatingActionButton: FloatingActionButton.extended(
             backgroundColor: kDustyRose,
             onPressed: () async {
-              print("Share button clicked!");
+              print("Generating PDF... Template: ${isSimple ? 'Simple' : 'Smart'}");
               try {
-                if (cvProvider.userCV != null) {
-                  await PdfService.generateAndShareResume(cvProvider.userCV!, isArabic);
-                } else {
-                  print("CV Data is NULL!");
+                if (cvData != null) {
+                  if (isSimple) {
+                    await SimplePdfService.generateAndShareSimpleResume(cvData, isArabic);
+                  } else {
+                    await PdfService.generateAndShareResume(cvData, isArabic);
+                  }
                 }
               } catch (e) {
                 print("PDF ERROR: $e");
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Error: $e")),
+                  SnackBar(content: Text("Error generating PDF: $e")),
                 );
               }
             },
             label: Text(isArabic ? "تحميل PDF" : "Download PDF"),
             icon: const Icon(Icons.share),
           ),
+
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: isSimple
@@ -80,7 +84,6 @@ class FinalPreviewScreen extends StatelessWidget {
       },
     );
   }
-
   Widget _buildSimpleLayout(cvData, bool isArabic) {
     return Container(
       width: double.infinity,
@@ -98,7 +101,6 @@ class FinalPreviewScreen extends StatelessWidget {
                 _buildInfoRow(Icons.phone_android_outlined, cvData.phone),
                 const Divider(height: 30),
 
-                // إضافة التعليم في النموذج الكلاسيكي
                 _buildSectionTitle(isArabic ? "التعليم" : "Education", Icons.school_outlined),
                 Text(cvData.education ?? "", textAlign: isArabic ? TextAlign.right : TextAlign.left),
                 const Divider(height: 30),
@@ -113,6 +115,7 @@ class FinalPreviewScreen extends StatelessWidget {
     );
   }
 
+  // --- تصميم واجهة المعاينة للنموذج الذكي ---
   Widget _buildSmartModernLayout(cvData, bool isArabic) {
     return Column(
       children: [
@@ -144,11 +147,7 @@ class FinalPreviewScreen extends StatelessWidget {
                   children: [
                     Text(
                       cvData.fullName ?? "",
-                      style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold
-                      ),
+                      style: const TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -156,8 +155,6 @@ class FinalPreviewScreen extends StatelessWidget {
                     Text(
                       cvData.jobTitle ?? "",
                       style: const TextStyle(color: Colors.white70, fontSize: 14),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -166,18 +163,6 @@ class FinalPreviewScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        if (cvData.education != null && cvData.education!.isNotEmpty) ...[
-          _buildCard(
-            title: isArabic ? "التعليم" : "Education",
-            icon: Icons.school,
-            child: Text(
-              cvData.education!,
-              style: const TextStyle(fontSize: 14, height: 1.4),
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
-
         _buildCard(
           title: isArabic ? "المهارات" : "Skills",
           icon: Icons.bolt,
@@ -192,16 +177,13 @@ class FinalPreviewScreen extends StatelessWidget {
     );
   }
 
+  // --- توابع مساعدة للزينة ---
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(25),
       boxShadow: [
-        BoxShadow(
-          color: kSoftPink.withOpacity(0.1),
-          blurRadius: 15,
-          offset: const Offset(0, 5),
-        )
+        BoxShadow(color: kSoftPink.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))
       ],
     );
   }
