@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'login_screen.dart';
 import 'smart_form_screen.dart';
 import 'simple_form_screen.dart';
 import '../main.dart';
@@ -18,7 +19,13 @@ class TemplateSelectionScreen extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Color(0xFFAD1457)),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (route) => false,
+            );
+          },
         ),
         backgroundColor: const Color(0xFFFAF9F6),
         elevation: 0,
