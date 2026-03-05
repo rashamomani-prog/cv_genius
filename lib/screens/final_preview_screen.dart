@@ -175,8 +175,6 @@ class FinalPreviewScreen extends StatelessWidget {
       ],
     );
   }
-
-  // --- توابع مساعدة للزينة ---
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
       color: Colors.white,

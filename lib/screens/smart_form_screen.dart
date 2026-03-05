@@ -45,8 +45,6 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
   final Color kOffWhite = const Color(0xFFFAF9F6);
   final Color kSoftPink = const Color(0xFFF8BBD0);
   final Color kDustyRose = const Color(0xFFAD1457);
-
-  // --- دالة اختيار الصورة من المعرض ---
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -89,7 +87,6 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
         padding: const EdgeInsets.all(25),
         child: Column(
           children: <Widget>[
-            // --- قسم الصورة الشخصية المضاف ---
             const SizedBox(height: 10),
             GestureDetector(
               onTap: _pickImage,
@@ -124,12 +121,10 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              isArabic ? "إضافة صورة شخصية" : "Add Profile Picture",
+              isArabic ? "إضافة صورتك الحوة" : "Add your sweet picture",
               style: TextStyle(color: kDustyRose.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 30),
-
-            // --- باقي الحقول كما هي دون تغيير ---
             _buildField(isArabic ? "الاسم الكامل" : "Full Name", nameController, Icons.person_outline, isArabic),
             _buildField(isArabic ? "المسمى الوظيفي" : "Job Title", jobTitleController, Icons.work_outline, isArabic),
             _buildField(isArabic ? "البريد الإلكتروني" : "Email Address", emailController, Icons.alternate_email, isArabic),
@@ -183,8 +178,6 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
       ),
     );
   }
-
-  // --- دوال المساعدة (Build Methods) بقيت كما هي ---
   Widget _buildQuizSection({
     required String title,
     required List<String> suggestions,
@@ -236,8 +229,6 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
     try {
       final provider = Provider.of<CVProvider>(context, listen: false);
       String imageUrl = "";
-
-      // هنا نستخدم ملف الصورة المختارة ونرفعه لـ Firebase
       if (_selectedImage != null) {
         imageUrl = await provider.uploadProfileImage(_selectedImage!);
       }
@@ -255,7 +246,7 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
         skills: skillsController.text.trim(),
         experience: experienceController.text.trim(),
         summary: summaryController.text.trim(),
-        profileImage: imageUrl, // تمرير رابط الصورة المرفوعة
+        profileImage: imageUrl,
         isSmart: true,
       );
 

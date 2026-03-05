@@ -49,6 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final langProvider = Provider.of<LanguageProvider>(context);
     bool isArabic = langProvider.locale.languageCode == 'ar';
+    bool isEnglish = langProvider.locale.languageCode == 'en';
 
     return Scaffold(
       backgroundColor: kBgLight,
@@ -145,19 +146,12 @@ class _LoginScreenState extends State<LoginScreen> {
               ),child: IconButton(
               icon: const Icon(Icons.language, color: Color(0xFFC2185B)),
               onPressed: () {
-                // 1. الوصول للمزود
                 final dynamic langProv = Provider.of<LanguageProvider>(context, listen: false);
-
-                // 2. تحديث اللغة "يدوياً" بدون نداء الدالة المشكلة
-                // هذا الكود يغير القيمة مباشرة ويخبر التطبيق بالتحديث
                 setState(() {
                   if (isArabic) {
-                    // إذا كان عندك متغير اسمه _currentLocale في البروفايدر
                     try {
                       langProv.changeLanguage('en');
                     } catch (e) {
-                      // إذا فشل، بنجبره يغير الـ Locale إذا كان المتغير public
-                      // أو بننادي الدالة كـ dynamic مرة ثانية
                       (langProv as dynamic).changeLanguage('en');
                     }
                   } else {
