@@ -115,7 +115,6 @@ class FinalPreviewScreen extends StatelessWidget {
     );
   }
 
-  // --- تصميم واجهة المعاينة للنموذج الذكي ---
   Widget _buildSmartModernLayout(cvData, bool isArabic) {
     return Column(
       children: [
