@@ -8,7 +8,8 @@ import '../models/user_model.dart';
 class CVProvider with ChangeNotifier {
   UserModel? _userCV;
   bool _isLoading = false;
-
+  String? _imageUrl;
+  String? get imageUrl => _imageUrl;
   UserModel? get userCV => _userCV;
   bool get isLoading => _isLoading;
 
@@ -32,6 +33,13 @@ class CVProvider with ChangeNotifier {
       print("خطأ في رفع الصورة: $e");
       return "";
     }
+  }
+  Future<void> uploadImage(File imageFile, String userId) async {
+    Reference ref = FirebaseStorage.instance.ref().child('user_pics').child('$userId.jpg');
+    await ref.putFile(imageFile);
+    _imageUrl = await ref.getDownloadURL();
+
+    notifyListeners();
   }
   Future<void> saveCVData(UserModel userModel) async {
     _isLoading = true;

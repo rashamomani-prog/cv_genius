@@ -4,16 +4,16 @@ class UserModel {
   String email;
   String phone;
   String address;
-  String? jobTitle;     // للسمارت
-  String? education;    // للبسيط والسمارت
-  String? skills;       // المهارات (نص)
-  List<dynamic>? smartSkills; // مهارات AI
+  String? jobTitle;
+  String? education;
+  String? skills;
+  List<dynamic>? smartSkills;
   String? experience;
   String? summary;
-  String? linkedin;     // رابط لينكد إن
-  String? birthDate;    // تاريخ الميلاد
-  String? profileImage; // رابط الصورة من Firebase Storage
-  String? languages;    // اللغات (الإضافة الجديدة)
+  String? linkedin;
+  String? birthDate;
+  String? profileImage;
+  String? languages;
   bool isSmart;
 
   UserModel({
@@ -31,11 +31,10 @@ class UserModel {
     this.linkedin,
     this.birthDate,
     this.profileImage,
-    this.languages,    // أضفناها هنا
+    this.languages,
     required this.isSmart,
   });
 
-  // من Firestore إلى App
   factory UserModel.fromMap(Map<String, dynamic> data, String id) {
     return UserModel(
       id: id,
@@ -52,12 +51,10 @@ class UserModel {
       linkedin: data['linkedin'],
       birthDate: data['birthDate'],
       profileImage: data['profileImage'],
-      languages: data['languages'], // قراءة اللغات
+      languages: data['languages'],
       isSmart: data['isSmart'] ?? false,
     );
   }
-
-  // من App إلى Firestore
   Map<String, dynamic> toMap() {
     return {
       'fullName': fullName,
@@ -73,7 +70,7 @@ class UserModel {
       'linkedin': linkedin,
       'birthDate': birthDate,
       'profileImage': profileImage,
-      'languages': languages, // تخزين اللغات
+      'languages': languages,
       'isSmart': isSmart,
     };
   }

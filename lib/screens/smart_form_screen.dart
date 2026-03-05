@@ -20,7 +20,7 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final addressController = TextEditingController();
-  final educationController= TextEditingController();
+  final educationController = TextEditingController();
   final linkedinController = TextEditingController();
   final birthdayController = TextEditingController();
   final languagesController = TextEditingController();
@@ -30,6 +30,7 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
 
   File? _selectedImage;
   bool _isProcessing = false;
+
   final List<String> _suggestedSkills = [
     "Communication", "Leadership", "Teamwork",
     "Problem Solving", "Time Management", "Creativity", "Technical Skills"
@@ -44,6 +45,18 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
   final Color kOffWhite = const Color(0xFFFAF9F6);
   final Color kSoftPink = const Color(0xFFF8BBD0);
   final Color kDustyRose = const Color(0xFFAD1457);
+
+  // --- دالة اختيار الصورة من المعرض ---
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +89,47 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
         padding: const EdgeInsets.all(25),
         child: Column(
           children: <Widget>[
+            // --- قسم الصورة الشخصية المضاف ---
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: _pickImage,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundColor: kSoftPink.withOpacity(0.3),
+                    backgroundImage: _selectedImage != null
+                        ? FileImage(_selectedImage!)
+                        : null,
+                    child: _selectedImage == null
+                        ? Icon(Icons.add_a_photo_outlined, size: 40, color: kDustyRose)
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: kDustyRose,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(Icons.edit, color: Colors.white, size: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              isArabic ? "إضافة صورة شخصية" : "Add Profile Picture",
+              style: TextStyle(color: kDustyRose.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500),
+            ),
             const SizedBox(height: 30),
+
+            // --- باقي الحقول كما هي دون تغيير ---
             _buildField(isArabic ? "الاسم الكامل" : "Full Name", nameController, Icons.person_outline, isArabic),
             _buildField(isArabic ? "المسمى الوظيفي" : "Job Title", jobTitleController, Icons.work_outline, isArabic),
             _buildField(isArabic ? "البريد الإلكتروني" : "Email Address", emailController, Icons.alternate_email, isArabic),
@@ -124,11 +177,14 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
                 style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
+
+  // --- دوال المساعدة (Build Methods) بقيت كما هي ---
   Widget _buildQuizSection({
     required String title,
     required List<String> suggestions,
@@ -180,7 +236,11 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
     try {
       final provider = Provider.of<CVProvider>(context, listen: false);
       String imageUrl = "";
-      if (_selectedImage != null) imageUrl = await provider.uploadProfileImage(_selectedImage!);
+
+      // هنا نستخدم ملف الصورة المختارة ونرفعه لـ Firebase
+      if (_selectedImage != null) {
+        imageUrl = await provider.uploadProfileImage(_selectedImage!);
+      }
 
       final newUser = UserModel(
         fullName: nameController.text.trim(),
@@ -195,7 +255,7 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
         skills: skillsController.text.trim(),
         experience: experienceController.text.trim(),
         summary: summaryController.text.trim(),
-        profileImage: imageUrl,
+        profileImage: imageUrl, // تمرير رابط الصورة المرفوعة
         isSmart: true,
       );
 
@@ -209,7 +269,6 @@ class _SmartFormScreenState extends State<SmartFormScreen> {
       if (mounted) setState(() => _isProcessing = false);
     }
   }
-
 
   Widget _buildField(String label, TextEditingController controller, IconData icon, bool isArabic, {int maxLines = 1}) {
     return Padding(
